@@ -85,9 +85,9 @@ preventDup = {
     Triggers: ['Insert', 'Update'],
     Expression: function () {
         var fs = FeatureSetByName($datastore, 'GISDEV.STREET');
-        var key = $feature.STREETLABEL;
-        var result = Filter(fs, 'STREETLABEL=@key');
-        var count = Count(result);
+        var streetlabel= $feature.STREETLABEL;
+        var duplicateStreets= Filter(fs, 'STREETLABEL=@streetlabel');
+        var count = Count(duplicateStreets);
         if (count > 1) {
             return false
         }
