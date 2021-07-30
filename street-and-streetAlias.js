@@ -1,7 +1,7 @@
 AddStreetId = {
     Description: 'Get Next Street Id',
     Field: STREETID,
-    Editable:false,
+    Editable: false,
     Expression: AddStreetIdExpression,
     Triggers: 'Insert'
 }
@@ -12,7 +12,7 @@ AddStreetIdExpression = () => {
 NewStreet_StreetLabel = {
     Description: 'Fill in street label for new street',
     Field: STREETLABEL,
-    Editable:false,
+    Editable: false,
     Expression: NewStreetGetLabelExpression,
     Triggers: 'Insert'
 }
@@ -33,7 +33,7 @@ NewStreet_StreetLabel_Expression = () => {
 UpdateStreet = {
     Description: 'If values changed, then update Street Label Field and insert a new row to streetAlias',
     Field: STREETLABEL,
-    Editable:false,
+    Editable: false,
     Expression: UpdateStreetExpression,
     Triggers: 'Update'
 }
@@ -48,26 +48,39 @@ UpdateStreetExpression = () => {
         var current = Trim($feature[key]);
         var previous = Trim($originalfeature[key]);
 
+        streetAliasAttr[key] = previous;
+
         if (current != previous && isChanged == false) {
             isChanged = true;
         }
         if (!IsEmpty(current)) {
-            streetLabel = +current + ' ';
-            streetAliasAttr[key] = current;
+            streetLabel = streetLabel + current + ' ';
         }
 
     }
 
     if (isChanged) {
-        streetAliasAttr['STREETLABEL'] = streetLabel;
+        streetAliasAttr['STREETLABEL'] = $originalfeature.STREETLABEL;
+        streetAliasAttr['STREETID'] = $feature.STREETID;
         return {
             'result': streetLabel,
-            'edit': [{
-                'className': 'GISDEV.STREETALIAS',
-                'adds': [{
-                    'attributes': streetAliasAttr
-                }]
-            }]
+            'edit': [
+                {
+                    'className': 'GISDEV.STREETALIAS',
+                    'adds': [{
+                        'attributes': streetAliasAttr
+                    }]
+                }
+            ]
         }
     }
+}
+
+//---not working
+DeleteStreet_CleanStreetAlias = {
+    Description: 'If values changed, then update Street Label Field and insert a new row to streetAlias',
+    Field: 'STREETID',
+    Editable:false ,
+    Expression: DeleteStreetExpression,
+    Triggers: 'Delete'
 }
