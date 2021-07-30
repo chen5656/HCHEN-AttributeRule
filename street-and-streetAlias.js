@@ -56,7 +56,7 @@ UpdateStreet = {
 
         if (isChanged) {
             streetAliasAttr['STREETLABEL'] = $originalfeature.STREETLABEL;
-            streetAliasAttr['STREETID'] = $feature.STREETID;
+            streetAliasAttr['STREETID'] = $originalfeature.STREETID;
             return {
                 'result': streetLabel,
                 'edit': [{
@@ -70,12 +70,29 @@ UpdateStreet = {
     }
 }
 
-//---not working
 DeleteStreet_CleanStreetAlias = {
-    Description: 'If values changed, then update Street Label Field and insert a new row to streetAlias',
+    Description: 'Delete, push to streetalias, and user will need to pick a new street id for it in the street alias table',
     Field: 'STREETID',
     Editable: false,
-    Expression: DeleteStreetExpression,
+    Expression: function () {
+        var parts = ['STREETID', 'STREETPREFIX', 'STREETNAME', 'STREETTYPE', 'STREETSUFFIX', 'STREETLABEL'];
+        var streetAliasAttr = {};
+
+        for (var i in parts) {
+            var key = parts[i];
+            var previous = Trim($originalfeature[key]);
+            streetAliasAttr[key] = previous;
+        }
+
+        return {
+            'edit': [{
+                'className': 'GISDEV.STREETALIAS',
+                'adds': [{
+                    'attributes': streetAliasAttr
+                }]
+            }]
+        }
+    },
     Triggers: 'Delete'
 }
 
@@ -84,10 +101,9 @@ preventDup = {
     Description: 'prevent duplicate key value',
     Triggers: ['Insert', 'Update'],
     Expression: function () {
-        var fs = FeatureSetByName($datastore, 'GISDEV.STREET');
-        var streetlabel= $feature.STREETLABEL;
-        var duplicateStreets= Filter(fs, 'STREETLABEL=@streetlabel');
-        var count = Count(duplicateStreets);
+        var streetlabel = $feature.STREETLABEL;
+        var fsStreets = Filter($featureSet, 'STREETLABEL=@streetlabel');
+        var count = Count(fsStreets);
         if (count > 1) {
             return false
         }
